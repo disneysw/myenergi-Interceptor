@@ -1,10 +1,3 @@
-// https://github.com/PeterTM/mqtt-energi?tab=readme-ov-file
-// https://phab.mallen.id.au/diffusion/51/browse/default/src/
-// Login to local ap and run tcpdump -i br0 host 192.168.1.133 -U -w tcpdump.pcap
-// https://myenergi.info/udp-protocol-details-for-local-data-collection-and-t1201-s70.html
-// https://greiginsydney.com/packet-sniffing-your-unifi-access-points/
-// https://web.imhex.werwolv.net/
-//
 
 #include "include.h"
 #include "decode.h"
