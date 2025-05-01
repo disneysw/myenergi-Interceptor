@@ -25,7 +25,7 @@ decodes packets and will forward relevant information to MQTT allowing better in
 
 1. Clone the repository to your local machine.
 2. Open the project in Visual Studio Code/PlatformIO
-3. Connect the ESP32 CYB board to your computer via USB.
+3. Connect the ESP32 CYD board to your computer via USB.
 4. On first use you need to build a filesystem image (stuff in the data directory) and upload to the ESP32 (use the PlatformIO icon to see the menu options)
 5. Then build and upload the code to the board using PlatformIO.
 6. After it is installed you can switch to using the Arduino OTA upload process by uncommenting/changing the options in the platformio.ini file
