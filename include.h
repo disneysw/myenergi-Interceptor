@@ -27,7 +27,7 @@
 #define CODENAME "Myenergi-Intecepter" // Update "upload_port = " in platformio.ini if you change this for OTA to work
 #define PASSWORD "passwordTest"
 
-#define MYENERGI_SERVER "192.168.1.10" // "15.197.208.241"
+#define MYENERGI_SERVER "15.197.208.241"
 #define MYENERGI_HUB "192.168.1.133"
 
 #define MQTT_SERVER "192.168.1.10"
@@ -36,6 +36,5 @@
 #define MQTT_PASSWORD "mqtt7"
 
 extern WiFiUDP udp;
-
 
 #endif //_INCLUDE_H

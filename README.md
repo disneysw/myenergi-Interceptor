@@ -3,7 +3,7 @@
 *** This is work in progress. Much of the code is not implemented yet !!!! ***
 
 
-This project is designed for an ESP32 CYB (Cheap Yellow Board) development board which includes a OLED display.
+This project is designed for an ESP32 CYD (Cheap Yellow Display) development board which includes a OLED display. There are two versions of the board one with USB-C and another with a USB-B. The two are functionally equivalent but have slightly different connector placement. They may also have slightly different displays (Red or Green tab). I have a green tab board but you should be able to use the red tab types by changing a define in include.h. 
 
 The boards are available for about $16 from Amazon or AliExpress and use Wi-Fi to connect to your network.
 
