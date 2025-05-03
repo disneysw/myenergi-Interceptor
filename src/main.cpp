@@ -31,12 +31,13 @@ void loop()
 #ifdef debugLoop
     Serial.print(" Received packet from : ");
     Serial.println(udp.remoteIP());
+    Serial.println(udp.remotePort());
 #endif
 
     uint8_t packetBuffer[UDP_PACKET_MAX_SIZE];
     memset(packetBuffer, 0, UDP_PACKET_MAX_SIZE);          // Clear the buffer
     len = udp.read(packetBuffer, UDP_PACKET_MAX_SIZE); // Read the packet into the buffer
-    decodePacket(packetBuffer, len);
+    decodeHub(packetBuffer, len, udp.remotePort());
   }
   //  Serial.printf("process ota\n");
   ArduinoOTA.handle(); // Handle OTA updates

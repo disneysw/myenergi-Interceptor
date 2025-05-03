@@ -12,10 +12,13 @@
 #include <ESPmDNS.h>
 #include <PubSubClient.h>
 
-#define debugInit
-#define debugLoop
-#define debugDecode
+//#define debugInit
+//#define debugLoop
+#define debugDecodeHeader
+//#define debugServerDecode
+//#define debugDecode
 #define debugDecodeSub
+#define decodeSubUnknown
 #define decodeSubPacket3510
 #define decodeSubPacket3601
 #define decodeSubPacket3730

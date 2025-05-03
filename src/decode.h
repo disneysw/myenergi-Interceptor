@@ -11,8 +11,39 @@
 #define UDP_PORT 87
 
 void initDecode();
-void decodePacket(WiFiUDP udp);
-void decodePacket(uint8_t *packetBuffer, int len);
+void decodeHub(uint8_t *packetBuffer, int len, uint16_t port);
+void decodeServer(uint8_t *packetBuffer, int len);
+
+// Status Flags       Value 	     Zappi 	Eddi 	Description
+#define STATUS_EDDI 0x0001      // No 	  Yes 	Data relates to eddi
+#define STATUS_ZAPPI 0x0002     // Yes 	  No 	Data relates to zappi
+#define STATUS_HEATER_ON 0x0008 // Yes 	  Yes 	Heater is hot (eddi), cable unlocked? (zappi)
+#define STATUS_BOOSTING 0x0010  // Yes 	  Yes 	Boosting
+#define STATUS_NORMAL 0x0020    // Yes 	  Yes 	Always set during normal use - was clear during zappi firmware update
+#define STATUS_UNKNOWN1 0x0040  // ? 	    Yes 	Possibly related to settings being changed
+#define STATUS_UNKNOWN2 0x0080  // ? 	    Yes 	Possibly related to settings being changed
+#define STATUS_HEATER1 0x0100   // Yes 	  Yes 	Heater 1 (eddi), unknown (zappi)
+#define STATUS_HEATER2 0x0200   // Yes 	  Yes 	Heater 2 (eddi), unknown (zappi)
+
+// Firstly, values 0x1 and 0x2 are not to do with whether this is a Zappi or Eddi,
+// bits 0x1-0x4 represent the Device Priority. So those bits are not flags - they should be masked with either 0x3 or 0x7
+// to give the priorty, depending upon whether it's in the first 2 or 3 bits.
+// I would imagine 3 bits as I'm pretty sure the MyEnergi system supports 4 devices, and there is no priority 0.
+// Secondly, bits 0x100 - 0x800 on the Zappi are again not flags but should be masked with 0x300 and shifted right 8 bits
+// to give values 0-3 where on Zappi they represent the Charge Mode and as you discovered on Eddi represent the Heater:
+
+// Zappi
+// 1 = Fast Mode
+// 2 = Eco Mode
+// 3 = Eco+ Mode
+
+// Eddi
+// 1 = Heater 1
+// 2 = Heater 2
+
+// Finally for now, bits 0x1000 - 0x2000 represent a looping value (0-1-2-3-0-1-2-3-1...) which changes in response
+// to a configuration change.  So I'm pretty sure they represent the last server config message that was applied by
+// the device.
 
 // convention:
 // _lowercase - zero certainty what is that
@@ -28,7 +59,8 @@ struct MyenergiServerPkt
   uint32_t Timestamp;
   uint16_t PayloadLength;
   uint16_t Sequence;
-  uint32_t _Unknown2;
+  uint16_t _Unknown2;
+  uint16_t _pktType;
   uint32_t _Unknown3;
   uint32_t _Unknown4;
   uint32_t ServerIP1;
@@ -95,31 +127,46 @@ struct SharedRecord
 };
 
 // ---------------------------------------------------
-struct SubPacket0x1035
+struct SubPacket0x3510
 {
+  // Len 46 Bytes
   MyEnergiRecord Header;
+  uint8_t EddiSerial[4];
+  uint8_t _wtf1[8];
+  uint16_t Status; // Bitfield
+  uint16_t _wtf2;
+  uint16_t _wtf3;
+
+  uint8_t _wtf4; // Should be 0x08
+  uint8_t d1_device; // always 0x11
+  uint8_t _wtf5;
+  uint16_t d1_watts;
+  uint16_t d1_centiAmps;
+
+  uint8_t _wtf6; // Should be 0x08
+  uint8_t d2_device; // always 0x21
+  uint8_t _wtf7;
+  uint16_t d2_watts;
+  uint16_t d2_centiAmps;
+
+  uint8_t _wtf8; // Should be 0x08
+  uint8_t d3_device; // always 0x31
+  uint8_t _wtf9;
+  uint16_t d3_watts;
+  uint16_t d3_centiAmps;
+
 };
 
 // ---------------------------------------------------
 struct SubPacket0x3601
 {
-  // 78
+  // 42 Bytes
   MyEnergiRecord Header;
   uint8_t _wtf1[15];
-  uint8_t HubSerial[4];
+  uint8_t EddiSerial1[4];
   uint8_t _wtf2[10]; // 0x00
-  uint8_t EddiSerial[4];
-  uint8_t _wtf3[9];
-  uint8_t _wtf4[79]; 
-};
-
-// ---------------------------------------------------
-struct SubPacket0x3510
-{
-    // Len 46 Bytes
-  MyEnergiRecord Header;
-//  uint32_t EddiSerial;
-  uint8_t _wtf1[42];
+  uint8_t _HubSerial[4];
+  uint8_t _wtf3[5];
 };
 
 // ---------------------------------------------------
@@ -128,67 +175,28 @@ struct SubPacket0x3730
   // Len 39
   MyEnergiRecord Header;
   uint16_t _wtf1[2];
-  uint32_t  harviSerial;
+  uint32_t harviSerial;
 
-  uint8_t  Clamp1_wtf; // 0x08
-  uint8_t Clamp1_wtf1;      // ? 17-33-49
+  uint8_t Clamp1_wtf;  // 0x08
+  uint8_t Clamp1_wtf1; // ? 17-33-49
   uint8_t Clamp1_ClampType;
   uint8_t Clamp1_wtf2; // ? varies but always is either an increasing sequence or 0-0-0
   uint16_t Clamp1_Power_Watts;
   uint16_t Clamp1_Current_CentiAmps;
 
-  uint8_t  Clamp2_wtf; // 0x08
-  uint8_t Clamp2_wtf1;      // ? 17-33-49
+  uint8_t Clamp2_wtf;  // 0x08
+  uint8_t Clamp2_wtf1; // ? 17-33-49
   uint8_t Clamp2_ClampType;
   uint8_t Clamp2_wtf2; // ? varies but always is either an increasing sequence or 0-0-0
   uint16_t Clamp2_Power_Watts;
   uint16_t Clamp2_Current_CentiAmps;
 
-
-  uint8_t  Clamp3_wtf; // 0x08
-  uint8_t Clamp3_wtf1;      // ? 17-33-49
+  uint8_t Clamp3_wtf;  // 0x08
+  uint8_t Clamp3_wtf1; // ? 17-33-49
   uint8_t Clamp3_ClampType;
   uint8_t Clamp3_wtf2; // ? varies but always is either an increasing sequence or 0-0-0
   uint16_t Clamp3_Power_Watts;
   uint16_t Clamp3_Current_CentiAmps;
-};
-
-// ---------------------------------------------------
-struct SubPacket0x6b6b
-{
-  MyEnergiRecord Header; // Six bytes
-  uint8_t heaterID;
-  uint8_t _wtf1;           // 0x00
-  uint16_t _wtf2[17];      // 0x00
-  uint16_t boostDuration1; // In seconds
-  uint16_t _wtf3[3];       // 0x00
-  uint16_t boostDuration2; // In seconds
-  uint16_t _wtf4[3];       // 0x00
-  uint16_t boostDuration3; // In seconds
-  uint16_t _wtf5[3];       // 0x00
-  uint16_t boostDuration4; // In seconds
-  uint16_t _wtf6[3];       // 0x00
-};
-
-
-// ---------------------------------------------------
-struct SubPacket0x7878
-{
-  // Len 45
-  MyEnergiRecord Header;
-  uint8_t _wtf1[45]; 
-};
-
-// ---------------------------------------------------
-struct SubPacket0x7979
-{
-  MyEnergiRecord Header;
-};
-
-// ---------------------------------------------------
-struct SubPacketUnknown
-{
-  MyEnergiRecord Header;
 };
 
 // ---------------------------------------------------
@@ -209,10 +217,70 @@ struct SubPacket0x5a5a
   // on the solar CT clamp, which for me reads around 8-11 when I’m not generating solar,
   // but whenever I am this value sits at 0.
 
+  // Zappi diverted? = 2351 ("h1d" / 60)
+  // Grid imported? = 3097 ("imp" / 60)
+  // Frequency = 4997 ("frq")
+  // Voltage 1 = 2427 ("v1")
+  // Voltage 2 = 2426
+  // Voltage 3 = 2429
+  // Temperature = 170
+
+  // the day of week is a 3-bit value and the hour is a 5-bit value, they are packed into the same byte.
+  // Something else is also packed into the "day of month" (which is also 5-bits) but I'm not sure what.
+
   MyEnergiRecord Header;
   uint8_t _wtf1[44];
-  uint8_t EddiSerial[4]; 
+  uint8_t EddiSerial[4];
   uint8_t _wtf2[6];
 };
+
+// ---------------------------------------------------
+struct SubPacket0x6b6b
+{
+  //  The 0x6b6b stuff the server sends looks like requests to read/write specific memory addresses.
+  // It will read or write a fixed size chunk at a time, can't remember the specifics off the top of my head.
+  // So like the timer schedule is divided across two or three address sets and the server asks what's there and
+  // then modifies it and sends it back.
+  // Similarly, triggering a manual boost seems to write something to a particular address.
+  // Might be an IO port of some form. I plan to look at this as well but am mostly tidying up my existing code at the
+  // moment so let me know what you find.
+  //
+  // Examining the memory used for eddi's config data, there seems to be 4 sets of timers (4 timers each).
+
+  MyEnergiRecord Header; // Six bytes
+  uint8_t heaterID;
+  uint8_t _wtf1;           // 0x00
+  uint16_t _wtf2[17];      // 0x00
+  uint16_t boostDuration1; // In seconds
+  uint16_t _wtf3[3];       // 0x00
+  uint16_t boostDuration2; // In seconds
+  uint16_t _wtf4[3];       // 0x00
+  uint16_t boostDuration3; // In seconds
+  uint16_t _wtf5[3];       // 0x00
+  uint16_t boostDuration4; // In seconds
+  uint16_t _wtf6[3];       // 0x00
+};
+
+// ---------------------------------------------------
+struct SubPacket0x7878
+{
+  // Len 45
+  MyEnergiRecord Header;
+  uint8_t _wtf1[45];
+};
+
+// ---------------------------------------------------
+struct SubPacket0xcc99
+{
+  MyEnergiRecord Header; // Six bytes
+  uint8_t _wtf1;         // 0x00
+};
+
+// ---------------------------------------------------
+struct SubPacketUnknown
+{
+  MyEnergiRecord Header;
+};
+
 
 #endif // _DECODE_H
