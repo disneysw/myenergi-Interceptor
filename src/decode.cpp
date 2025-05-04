@@ -3,12 +3,14 @@
 
 #include <HexDump.h>
 
-IPAddress myEnergiServer, myEnergiAltServer;
-
 WiFiUDP udp;
 
+IPAddress myEnergiServer; // IP address of the myenergi server 
+IPAddress myEnergiAltServer; // Alternative server IP probably only used when switching servers
+IPAddress hubIP; // IP address of the local myenergi hub
 uint16_t hubPort = 87; // Default port for myenergi hub
 uint8_t pkt_end = 0x53;
+
 
 // ---------------------------------------------------
 void initDecode()
@@ -143,11 +145,11 @@ uint8_t decodeSubPacketUnknown(uint8_t *packetBuffer, int len) // Unknown Record
 void decodeHub(uint8_t *packetBuffer, int len)
 {
 #ifdef debugLoop
-    Serial.printf("Received packet from Hub\n");
+    Serial.printf("Received packet from local hub\n");
 #endif
     struct MyenergiHubPkt *hub_packet = (struct MyenergiHubPkt *)packetBuffer;
 
-    udp.beginPacket(myEnergiServer, UDP_PORT);
+    udp.beginPacket(myEnergiServer, UDP_PORT);  // We are not doing any error checking so the alternative server is not used
     udp.write(packetBuffer, len);
     udp.endPacket();
     udp.clear();
@@ -201,31 +203,6 @@ void decodeHub(uint8_t *packetBuffer, int len)
 #endif
 }
 
-// ---------------------------------------------------
-void decodeHub(uint8_t *packetBuffer, int len, uint16_t port)
-{
-
-    if (len)
-    {
-        uint_fast32_t magic = packetBuffer[0] | (packetBuffer[1] << 8) | (packetBuffer[2] << 16) | (packetBuffer[3] << 24);
-#ifdef debugDecodeHeader
-        Serial.printf("magic: %x\n", magic);
-#endif
-        if (magic == 0xab1234d1)
-        {
-            decodeServer(packetBuffer, len); // Decode, Rewite incomming server packet & Forward to myenergi hub
-        }
-        else if (magic == 0xfacecac0)
-        {
-            hubPort = port;               // Save the hub UDP port for later so we can send packets back to the hub
-            decodeHub(packetBuffer, len); //  Decode & Forward to myenergi server
-        }
-        else
-        {
-            Serial.printf("Unknown magic#: %x\n", magic);
-        }
-    };
-}
 
 // ---------------------------------------------------
 void decodeServer(uint8_t *packetBuffer, int len)
@@ -240,12 +217,12 @@ void decodeServer(uint8_t *packetBuffer, int len)
 
     IPAddress myIP_Octects(WiFi.localIP()); // Get the local IP address as Octects
 
-    // There are actually subpackets in the server packet, but we are not decoding them yet.
+    // There are actually subpackets in the server packet, but we are not decoding them yet so this is dangerous!!
     server_packet->ServerIP1 = BYTESWAP32(myIP_Octects); // Rewite  server IP address
     server_packet->ServerIP2 = BYTESWAP32(myIP_Octects); // Rewite  server IP address
 
     // Send the updated packet to the myenergi hub
-    udp.beginPacket(MYENERGI_HUB, hubPort);
+    udp.beginPacket(hubIP, hubPort);
     udp.write(packetBuffer, len);
     udp.endPacket();
 #ifdef debugServerDecode
@@ -289,4 +266,31 @@ void decodeServer(uint8_t *packetBuffer, int len)
 #ifdef debugServerDecode
     Serial.printf("Processed packet -----------------------------\n");
 #endif
+}
+
+// ---------------------------------------------------
+void decodeIncommingPacket(uint8_t *packetBuffer, int len, IPAddress ip, uint16_t port)
+{
+
+    if (len)
+    {
+        uint_fast32_t magic = packetBuffer[0] | (packetBuffer[1] << 8) | (packetBuffer[2] << 16) | (packetBuffer[3] << 24);
+#ifdef debugDecodeHeader
+        Serial.printf("magic: %x\n", magic);
+#endif
+        if (magic == 0xab1234d1)
+        {
+            decodeServer(packetBuffer, len); // Decode, Rewite incomming server packet & Forward to myenergi hub
+        }
+        else if (magic == 0xfacecac0)
+        {
+            hubIP = ip;                 // Save the hub IP address for later so we can send packets back to the hub
+            hubPort = port;               // Save the hub UDP port for later so we can send packets back to the hub
+            decodeHub(packetBuffer, len); //  Decode & Forward to myenergi server
+        }
+        else
+        {
+            Serial.printf("Unknown magic#: %x\n", magic);
+        }
+    };
 }

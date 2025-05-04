@@ -7,6 +7,7 @@
 #include "ota.h"
 #include "wifimanager.h"
 #include "html.h"
+#include "mqtt.h"
 
 // ---------------------------------------------------
 void setup()
@@ -19,6 +20,7 @@ void setup()
   InitFilesystem();
   initOTA(); // Setup for Arduino OTA updates (See platformio.ini for upload_port)
   initDecode();
+ // initMQTT();
   //  initHTML();
 }
 
@@ -37,8 +39,9 @@ void loop()
     uint8_t packetBuffer[UDP_PACKET_MAX_SIZE];
     memset(packetBuffer, 0, UDP_PACKET_MAX_SIZE);          // Clear the buffer
     len = udp.read(packetBuffer, UDP_PACKET_MAX_SIZE); // Read the packet into the buffer
-    decodeHub(packetBuffer, len, udp.remotePort());
+    decodeIncommingPacket(packetBuffer, len, udp.remoteIP() ,udp.remotePort());
   }
   //  Serial.printf("process ota\n");
   ArduinoOTA.handle(); // Handle OTA updates
+ // mqttLoop(); // Handle MQTT updates
 }

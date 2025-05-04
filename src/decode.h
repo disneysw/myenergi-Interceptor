@@ -11,8 +11,8 @@
 #define UDP_PORT 87
 
 void initDecode();
-void decodeHub(uint8_t *packetBuffer, int len, uint16_t port);
-void decodeServer(uint8_t *packetBuffer, int len);
+void decodeIncommingPacket(uint8_t *packetBuffer, int len, IPAddress ip, uint16_t port);
+
 
 // Status Flags       Value 	     Zappi 	Eddi 	Description
 #define STATUS_EDDI 0x0001      // No 	  Yes 	Data relates to eddi
