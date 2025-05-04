@@ -4,6 +4,27 @@
 PubSubClient mqttClient;
 
 char config_json[] = "";
+    // Expect to setup a homeassistant device consisting of:
+    //      Hub
+    //          Hub Serial#
+    //          Eddi fw version
+    //      Eddi
+    //          Eddi Serial#
+    //          Eddi fw version
+    //          Output1 power 
+    //          Output2 power
+    //          OptionBoard Relay1
+    //          OptionBoard Relay2
+    //          OptionBoard TempSensor1
+    //          OptionBoard TempSensor2
+    //      Harvi
+    //          Harvi Serial#
+    //          Clamp1
+    //          Clamp2
+    //          Clamp3
+    //      Zappi  - I dont have a zappi so not sure...
+    //          Zappi Serial#
+    //          Eddi fw version
 /*
 {"dev" :
      {"ids" : ["HUB"],
@@ -48,6 +69,7 @@ void initMQTT()
     // mqttClient.subscribe("homeassistant/#");
 
     // Send homeassistant discovery message (use with caution)
+
     // homeassistant/device/hub_serial/config
 }
 

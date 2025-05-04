@@ -26,7 +26,7 @@ uint8_t decodeSubPacket0x3510(uint8_t *packetBuffer, int len) // Harvi Record
     // Len 46
     struct SubPacket0x3510 *packet0x3510 = (struct SubPacket0x3510 *)packetBuffer;
 #ifdef decodeSubPacket3510
-    Serial.printf("PacketType: 0x3510 (Size %i bytes)\n", packet0x3510->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0x3510 (Size %i bytes)\n", packet0x3510->Header.PayloadSize + 1);
     Serial.printf("Eddi Serial: %i\n", packet0x3510->EddiSerial[0] | (packet0x3510->EddiSerial[1] << 8) | (packet0x3510->EddiSerial[2] << 16) | (packet0x3510->EddiSerial[3] << 24));
     Serial.printf("Harvi Clamp1: %iW\n", packet0x3510->d1_watts);
     Serial.printf("Harvi Clamp1: %iA\n", packet0x3510->d1_centiAmps);
@@ -45,7 +45,7 @@ uint8_t decodeSubPacket0x3601(uint8_t *packetBuffer, int len)
 {
     struct SubPacket0x3601 *packet0x3601 = (struct SubPacket0x3601 *)packetBuffer;
 #ifdef decodeSubPacket3601
-    Serial.printf("PacketType: 0x3601 (Size %i bytes)\n", packet0x3601->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0x3601 (Size %i bytes)\n", packet0x3601->Header.PayloadSize + 1);
     HexDump(Serial, packet0x3601->_wtf1, sizeof(packet0x3601->_wtf1) + 1);
     Serial.printf("Eddi Serial: %04x\n", packet0x3601->_HubSerial[0] | (packet0x3601->_HubSerial[1] << 8) | (packet0x3601->_HubSerial[2] << 16) | (packet0x3601->_HubSerial[3] << 24));
     HexDump(Serial, packet0x3601->_wtf2, sizeof(packet0x3601->_wtf2) + 1);
@@ -61,10 +61,9 @@ uint8_t decodeSubPacket0x3730(uint8_t *packetBuffer, int len) // Harvi Record
 {
     struct SubPacket0x3730 *packet0x3730 = (struct SubPacket0x3730 *)packetBuffer;
 #ifdef decodeSubPacket3730
-    Serial.printf("PacketType: 0x3730 (Size %i bytes) - HarviRecord\n", packet0x3730->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0x3730 (Size %i bytes) - HarviRecord\n", packet0x3730->Header.PayloadSize + 1);
     Serial.printf("wtf1: %04X\n", packet0x3730->_wtf1);
     Serial.printf("Harvi Serial: %i\n", packet0x3730->harviSerial);
-    //[0] | (packet0x3730->harviSerial[1] << 8) | (packet0x3730->harviSerial[2] << 16));
     Serial.printf("Clamp1_Power_Watts: %i\n", packet0x3730->Clamp1_Power_Watts);
     Serial.printf("Clamp1_Current_CentiAmps: %i\n", packet0x3730->Clamp1_Current_CentiAmps);
 
@@ -74,7 +73,6 @@ uint8_t decodeSubPacket0x3730(uint8_t *packetBuffer, int len) // Harvi Record
     Serial.printf("Clamp3_Power_Watts: %i\n", packet0x3730->Clamp3_Power_Watts);
     Serial.printf("Clamp3_Current_CentiAmps: %i\n", packet0x3730->Clamp3_Current_CentiAmps);
     HexDump(Serial, &packet0x3730->Header.PacketType, packet0x3730->Header.PayloadSize + 1);
-
 #endif
     pkt_end = packet0x3730->Header.pkt_end;
     return packet0x3730->Header.PayloadSize + 1;
@@ -85,7 +83,7 @@ uint8_t decodeSubPacket0x5a5a(uint8_t *packetBuffer, int len)
 {
     struct SubPacket0x5a5a *packet0x5a5a = (struct SubPacket0x5a5a *)packetBuffer;
 #ifdef decodeSubPacket5a5a
-    Serial.printf("PacketType: 0x5a5a (Size %i bytes) - historical energy data", packet0x5a5a->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0x5a5a (Size %i bytes) - historical energy data", packet0x5a5a->Header.PayloadSize + 1);
     Serial.printf("PacketSize: %x\n", packet0x5a5a->Header.PayloadSize);
     HexDump(Serial, packet0x5a5a->_wtf1, sizeof(packet0x5a5a->_wtf1));
     Serial.printf("Eddi Serial: %04x\n", packet0x5a5a->EddiSerial[0] | (packet0x5a5a->EddiSerial[1] << 8) | (packet0x5a5a->EddiSerial[2] << 16) | (packet0x5a5a->EddiSerial[3] << 24));
@@ -100,7 +98,10 @@ uint8_t decodeSubPacket0x6b6b(uint8_t *packetBuffer, int len)
 {
     struct SubPacket0x6b6b *packet0x6b6b = (struct SubPacket0x6b6b *)packetBuffer;
 #ifdef debugDecodeSub
-    Serial.printf("PacketType: 0x6b6b (Size %i bytes) - Server to Eddi Record\n", packet0x6b6b->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0x6b6b (Size %i bytes) - Server to Eddi Record\n", packet0x6b6b->Header.PayloadSize + 1);
+#endif
+#ifdef debugServerDecode
+    HexDump(Serial, packetBuffer, len);
 #endif
     pkt_end = packet0x6b6b->Header.pkt_end;
     return packet0x6b6b->Header.PayloadSize + 1;
@@ -111,7 +112,10 @@ uint8_t decodeSubPacket0xcc99(uint8_t *packetBuffer, int len)
 {
     struct SubPacket0xcc99 *packet0xcc99 = (struct SubPacket0xcc99 *)packetBuffer;
 #ifdef debugDecodeSub
-    Serial.printf("PacketType: 0xcc99 (Size %i bytes) - Server to hub\n", packet0xcc99->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0xcc99 (Size %i bytes) - Server to hub\n", packet0xcc99->Header.PayloadSize + 1);
+#endif
+#ifdef debugServerDecode
+    HexDump(Serial, packetBuffer, len);
 #endif
     pkt_end = packet0xcc99->Header.pkt_end;
     return packet0xcc99->Header.PayloadSize + 1;
@@ -122,7 +126,7 @@ uint8_t decodeSubPacket0x7878(uint8_t *packetBuffer, int len)
 {
     struct SubPacket0x7878 *packet0x7878 = (struct SubPacket0x7878 *)packetBuffer;
 #ifdef decodeSubPacket7878
-    Serial.printf("PacketType: 0x7878 (Size %i bytes)\n", packet0x7878->Header.PayloadSize + 1);
+    Serial.printf("************ PacketType: 0x7878 (Size %i bytes)\n", packet0x7878->Header.PayloadSize + 1);
     HexDump(Serial, &packet0x7878->Header.PacketType, packet0x7878->Header.PayloadSize + 1);
 #endif
     pkt_end = packet0x7878->Header.pkt_end;
@@ -134,7 +138,7 @@ uint8_t decodeSubPacketUnknown(uint8_t *packetBuffer, int len) // Unknown Record
 {
     struct SubPacketUnknown *packetUnknown = (struct SubPacketUnknown *)packetBuffer;
 #ifdef decodeSubUnknown
-    Serial.printf("Unknown PacketType: %#02X (Size %i bytes)\n", packetUnknown->Header.PacketType, packetUnknown->Header.PayloadSize + 1);
+    Serial.printf("************ Unknown PacketType: %#02X (Size %i bytes)\n", packetUnknown->Header.PacketType, packetUnknown->Header.PayloadSize + 1);
     HexDump(Serial, &packetUnknown->Header.PacketType, packetUnknown->Header.PayloadSize + 1);
 #endif
     pkt_end = packetUnknown->Header.pkt_end;
@@ -145,7 +149,7 @@ uint8_t decodeSubPacketUnknown(uint8_t *packetBuffer, int len) // Unknown Record
 void decodeHub(uint8_t *packetBuffer, int len)
 {
 #ifdef debugLoop
-    Serial.printf("Received packet from local hub\n");
+    Serial.printf("************ Received packet from local hub\n");
 #endif
     struct MyenergiHubPkt *hub_packet = (struct MyenergiHubPkt *)packetBuffer;
 
@@ -208,10 +212,7 @@ void decodeHub(uint8_t *packetBuffer, int len)
 void decodeServer(uint8_t *packetBuffer, int len)
 {
 #ifdef debugLoop
-    Serial.printf("Received packet from Server\n");
-#endif
-#ifdef debugServerDecode
-    HexDump(Serial, packetBuffer, len);
+    Serial.printf("************ Received packet from Server\n");
 #endif
     struct MyenergiServerPkt *server_packet = (struct MyenergiServerPkt *)packetBuffer;
 
@@ -231,7 +232,7 @@ void decodeServer(uint8_t *packetBuffer, int len)
     // Short c1b7 – unsure.
     // Long c1b7 – unsure.
     Serial.printf("Packet sequence: %x\n", server_packet->Sequence);
-    Serial.printf("Packet size: %x\n", server_packet->PayloadLength);
+    Serial.printf("Packet size: %x\n", server_packet->UDP_PacketSize);
     time_t rawtime = (time_t)server_packet->Timestamp; // Convert uint32_t timestamp to time string
     struct tm *timeinfo = localtime(&rawtime);
     char timeString[20];

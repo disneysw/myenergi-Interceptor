@@ -13,17 +13,17 @@
 #include <PubSubClient.h>
 
 //#define debugInit
-//#define debugLoop
-#define debugDecodeHeader
-//#define debugServerDecode
+#define debugLoop
+// #define debugDecodeHeader
+#define debugServerDecode
 //#define debugDecode
 #define debugDecodeSub
 #define decodeSubUnknown
-#define decodeSubPacket3510
-#define decodeSubPacket3601
-#define decodeSubPacket3730
-#define decodeSubPacket5a5a
-#define decodeSubPacket7878
+//#define decodeSubPacket3510
+//#define decodeSubPacket3601
+//#define decodeSubPacket3730
+//#define decodeSubPacket5a5a
+//#define decodeSubPacket7878
 
 #define GREEN_TFT // Try uncommenting this line if you have issues with the TFT colors
 

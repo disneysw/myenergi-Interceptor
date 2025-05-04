@@ -14,16 +14,16 @@ void initDecode();
 void decodeIncommingPacket(uint8_t *packetBuffer, int len, IPAddress ip, uint16_t port);
 
 
-// Status Flags       Value 	     Zappi 	Eddi 	Description
-#define STATUS_EDDI 0x0001      // No 	  Yes 	Data relates to eddi
-#define STATUS_ZAPPI 0x0002     // Yes 	  No 	Data relates to zappi
-#define STATUS_HEATER_ON 0x0008 // Yes 	  Yes 	Heater is hot (eddi), cable unlocked? (zappi)
-#define STATUS_BOOSTING 0x0010  // Yes 	  Yes 	Boosting
-#define STATUS_NORMAL 0x0020    // Yes 	  Yes 	Always set during normal use - was clear during zappi firmware update
-#define STATUS_UNKNOWN1 0x0040  // ? 	    Yes 	Possibly related to settings being changed
-#define STATUS_UNKNOWN2 0x0080  // ? 	    Yes 	Possibly related to settings being changed
-#define STATUS_HEATER1 0x0100   // Yes 	  Yes 	Heater 1 (eddi), unknown (zappi)
-#define STATUS_HEATER2 0x0200   // Yes 	  Yes 	Heater 2 (eddi), unknown (zappi)
+// Status Flags           Value 	   Zappi 	Eddi 	Description
+#define STATUS_EDDI       0x0001  // No 	  Yes 	Data relates to eddi
+#define STATUS_ZAPPI      0x0002  // Yes 	  No 	  Data relates to zappi
+#define STATUS_HEATER_ON  0x0008  // Yes 	  Yes 	Heater is hot (eddi), cable unlocked? (zappi)
+#define STATUS_BOOSTING   0x0010  // Yes 	  Yes 	Boosting
+#define STATUS_NORMAL     0x0020  // Yes 	  Yes 	Always set during normal use - was clear during zappi firmware update
+#define STATUS_UNKNOWN1   0x0040  // ? 	    Yes 	Possibly related to settings being changed
+#define STATUS_UNKNOWN2   0x0080  // ? 	    Yes 	Possibly related to settings being changed
+#define STATUS_HEATER1    0x0100  // Yes 	  Yes 	Heater 1 (eddi), unknown (zappi)
+#define STATUS_HEATER2    0x0200  // Yes 	  Yes 	Heater 2 (eddi), unknown (zappi)
 
 // Firstly, values 0x1 and 0x2 are not to do with whether this is a Zappi or Eddi,
 // bits 0x1-0x4 represent the Device Priority. So those bits are not flags - they should be masked with either 0x3 or 0x7
@@ -47,90 +47,55 @@ void decodeIncommingPacket(uint8_t *packetBuffer, int len, IPAddress ip, uint16_
 
 // convention:
 // _lowercase - zero certainty what is that
-// _CamelCase - have an idea what is that
-// CamelCase - we are certain what is that
-// lowercase - not a field, impl detail
 
 // ---------------------------------------------------
 struct MyenergiServerPkt
 {
-  uint32_t MAGIC;
-  uint32_t Padding1;
-  uint32_t Timestamp;
-  uint16_t PayloadLength;
-  uint16_t Sequence;
-  uint16_t _Unknown2;
+  uint32_t MAGIC;         // Packet identifer
+  uint32_t Padding1;      // Always 0x00?
+  uint32_t Timestamp;     // Unix timestamp
+  uint16_t UDP_PacketSize; // Length of the payload
+  uint16_t Sequence;      // Sequence number seems to allwasy be 0x0001?
+  uint16_t _Unknown2;     // Seems to always be 0x399a?
   uint16_t _pktType;
   uint32_t _Unknown3;
   uint32_t _Unknown4;
-  uint32_t ServerIP1;
-  uint32_t ServerIP2;
+  uint32_t ServerIP1;     // Server IP address
+  uint32_t ServerIP2;     // Secondary server IP address
   uint64_t Padding2;
 };
 
 // ---------------------------------------------------
 struct MyenergiHubPkt
 {
-  uint32_t MAGIC;
+  uint32_t MAGIC;           // Packet identifer
   uint32_t padding;
-  uint32_t Serial;    // Serial number
-  uint32_t SeqNumber; // Increments by one for each packet
-  uint32_t Timestamp;
+  uint32_t Serial;          // Serial number
+  uint32_t SeqNumber;       // Increments by one for each packet
+  uint32_t Timestamp;       // Unix timestamp
   uint32_t _wtf1;           // Seems to always be 0x0000000e
-  uint16_t FirmwareVersion; // 5458
-  uint8_t _NetworkId;       // Always 83dec (0x53 / 's')
+  uint16_t FirmwareVersion; // Currently 0x5458
+  uint8_t _NetworkId;       // Always 83dec (0x53 | 's')
   uint8_t _wtf2;            // Always 0x00
-  uint16_t UDP_PacketSize;
+  uint16_t UDP_PacketSize;  // Size of the packet
   uint16_t _wtf3;
 };
 
 // ---------------------------------------------------
-struct MyEnergiRecord
+struct PacketHeader
 {
-  uint8_t PayloadSize;
-  uint8_t pkt_end; // 's' (always 0x53 or 0x00 for last packet)
-  uint16_t PacketType;
-  uint8_t DevId;
-  uint8_t _wtf1; // 0xff => good known device, 0x1 => some shit, 0x4 => last record,
-};
-
-// ---------------------------------------------------
-struct HarviClamp
-{
-  uint8_t padding[1]; // "harvi record starts with 0x8"
-  uint8_t _wtf1;      // ? 17-33-49
-  uint8_t ClampType;
-  uint8_t _wtf2; // ? varies but always is either an increasing sequence or 0-0-0
-  uint16_t Power_Watts;
-  uint16_t Current_CentiAmps;
-};
-
-// ---------------------------------------------------
-struct HarviRecord
-{
-  uint32_t HarviSerial;
-  HarviClamp HarviClamps[10];
-  // varies between packets, tend to be the same within one packet (but not always).
-  // Frequently it's 0-0 for all entries in all harvis
-  // Seconds since last reading?..
-  uint16_t _end_bytes[1];
-};
-
-// ---------------------------------------------------
-struct SharedRecord
-{
-  uint32_t _stable_id;
-  uint32_t _zero_or_wtf;
-  uint32_t _four;
-  uint16_t _device_type;
-  uint16_t _record_type;
+  uint8_t PayloadSize;    // Size of the payload
+  uint8_t pkt_end;        // 's' (always 0x53 or 0x00 for last packet)
+  uint16_t PacketType;    // Subpacket type
+  uint8_t DevId;          //
+  uint8_t _wtf1;          // 0xff => good known device, 0x1 => some shit, 0x4 => last record,
 };
 
 // ---------------------------------------------------
 struct SubPacket0x3510
 {
   // Len 46 Bytes
-  MyEnergiRecord Header;
+  PacketHeader Header;
   uint8_t EddiSerial[4];
   uint8_t _wtf1[8];
   uint16_t Status; // Bitfield
@@ -161,7 +126,7 @@ struct SubPacket0x3510
 struct SubPacket0x3601
 {
   // 42 Bytes
-  MyEnergiRecord Header;
+  PacketHeader Header;
   uint8_t _wtf1[15];
   uint8_t EddiSerial1[4];
   uint8_t _wtf2[10]; // 0x00
@@ -172,8 +137,8 @@ struct SubPacket0x3601
 // ---------------------------------------------------
 struct SubPacket0x3730
 {
-  // Len 39
-  MyEnergiRecord Header;
+  // Len 40
+  PacketHeader Header;
   uint16_t _wtf1[2];
   uint32_t harviSerial;
 
@@ -202,7 +167,7 @@ struct SubPacket0x3730
 // ---------------------------------------------------
 struct SubPacket0x5a5a
 {
-  // Len 35 Bytes
+  // Len 54 Bytes
   //  As I thought, structure 0x5a5a contains historical energy data. I've inspected what
   //  eddi outputs so far and it's quite interesting as it seems there are readings per-heater
   //  for diversion and import, along with grid import/export readings, and general grid
@@ -228,10 +193,10 @@ struct SubPacket0x5a5a
   // the day of week is a 3-bit value and the hour is a 5-bit value, they are packed into the same byte.
   // Something else is also packed into the "day of month" (which is also 5-bits) but I'm not sure what.
 
-  MyEnergiRecord Header;
+  PacketHeader Header;
   uint8_t _wtf1[44];
   uint8_t EddiSerial[4];
-  uint8_t _wtf2[6];
+  uint16_t _wtf2;
 };
 
 // ---------------------------------------------------
@@ -247,7 +212,7 @@ struct SubPacket0x6b6b
   //
   // Examining the memory used for eddi's config data, there seems to be 4 sets of timers (4 timers each).
 
-  MyEnergiRecord Header; // Six bytes
+  PacketHeader Header; // Six bytes
   uint8_t heaterID;
   uint8_t _wtf1;           // 0x00
   uint16_t _wtf2[17];      // 0x00
@@ -265,21 +230,24 @@ struct SubPacket0x6b6b
 struct SubPacket0x7878
 {
   // Len 45
-  MyEnergiRecord Header;
+  PacketHeader Header;
   uint8_t _wtf1[45];
+  uint8_t _wth2[8]; // Always 0x53 ('S')?
+  uint16_t _wtf3; // Always 0x00 ?
 };
 
 // ---------------------------------------------------
 struct SubPacket0xcc99
 {
-  MyEnergiRecord Header; // Six bytes
+  // Len 58
+  PacketHeader Header;
   uint8_t _wtf1;         // 0x00
 };
 
 // ---------------------------------------------------
 struct SubPacketUnknown
 {
-  MyEnergiRecord Header;
+  PacketHeader Header;
 };
 
 
