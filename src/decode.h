@@ -25,6 +25,130 @@ void decodeIncommingPacket(uint8_t *packetBuffer, int len, IPAddress ip, uint16_
 #define STATUS_HEATER1    0x0100  // Yes 	  Yes 	Heater 1 (eddi), unknown (zappi)
 #define STATUS_HEATER2    0x0200  // Yes 	  Yes 	Heater 2 (eddi), unknown (zappi)
 
+
+// Web API doc for ref (so we know what data is actually avail) https://github.com/twonk/MyEnergi-App-Api
+// Eddi fitted H1d means heater 1 diverted energy and H1b means heater 1 boost
+
+
+
+/*
+Available data from Myenergi web API i.e. the hub sent most of it!
+{
+"eddi":[ 
+  { 
+     "dat":"09-09-2019",
+     "tim":"16:55:50",
+     "ectp1":1,
+     "ectp2":1,
+     "ectt1":"Grid",
+     "ectt2":"Generation",
+     "frq":50.15,
+     "gen":304,
+     "grd":4429,
+     "hno":1,
+     "pha":3,
+     "sno":10088888,
+     "sta":1,
+     "vol":0.0,
+     "ht1":"Tank 1",
+     "ht2":"Tank 2",
+     "tp1":-1,
+     "tp2":-1,
+     "pri":2,
+     "cmt":254,
+     "r1a":1,
+     "r2a":1,
+     "r2b":1,
+     "che":1
+  }
+]
+},
+{
+"libbi":[
+  {
+"deviceClass": "LIBBI",
+"sno": 20005555,
+"dat": "01-09-2024",
+"tim": "15:26:00",
+"ectp1": -729,
+"ectp2": -68,
+"ectp3": 0,
+"ectt1": "Internal Load",
+"ectt2": "Grid",
+"ectt3": "None",
+"ectp4": 0,
+"ectp5": 148,
+"ectt4": "None",
+"ectt5": "DCPV",
+"ectt6": "None",
+"dst": 1,
+"tz": 0,
+"lmo": "BALANCE",
+"sta": 6,
+"frq": 49.87,
+"pri": 1,
+"soc": 86,
+"isp": true,
+"pha": 1,
+"vol": 2414,
+"mbc": 10200,
+"mic": 5000,
+"gen": 148,
+"grd": -58,
+"div": -729,
+"ect1p": 1,
+     "ect2p": 1,
+"ect3p": 1,
+"batteryDischargingBoost": false,
+"pvDirectlyConnected": true,
+"g100LockoutState": "NONE",
+"countryCode": "GBR",
+"isVHubEnabled": true,
+"cmt": 254,
+"fwv": "3702S5.433",
+"newAppAvailable": false,
+"newBootloaderAvailable": false,
+"productCode": "3702"
+}
+]
+},
+{ 
+"zappi":[ 
+  { 
+     "dat":"09-09-2019",
+     "tim":"16:55:50",
+     "div":3596,
+     "ectp1":4369,
+     "ectp2":295,
+     "ectt1":"Grid",
+     "ectt2":"Generation",
+     "frq":50.01,
+     "gen":304,
+     "grd":4429,
+     "pha":1,
+     "sno":10077777,
+     "sta":4,
+     "vol":240.2,
+     "pri":1,
+     "cmt":254,
+     "zmo":3,
+     "tbh":9,
+     "tbm":15,
+     "tbk":2,
+     "pst":"C2",
+     "bsm":1,
+     "mgl":100,
+     "sbh":14,
+     "sbk":5
+  }
+]
+},
+{ 
+"harvi":[ 
+
+]
+*/
+
 // Firstly, values 0x1 and 0x2 are not to do with whether this is a Zappi or Eddi,
 // bits 0x1-0x4 represent the Device Priority. So those bits are not flags - they should be masked with either 0x3 or 0x7
 // to give the priorty, depending upon whether it's in the first 2 or 3 bits.

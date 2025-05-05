@@ -8,6 +8,7 @@ char config_json[] = "";
     //      Hub
     //          Hub Serial#
     //          Eddi fw version
+    //      Libbi
     //      Eddi
     //          Eddi Serial#
     //          Eddi fw version
