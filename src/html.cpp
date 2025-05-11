@@ -1,7 +1,7 @@
 #include "include.h"
-#include "html.h"
+//#include "html.h"
 
-AsyncWebServer server(80);
+//AsyncWebServer server(80);
 
 // ---------------------------------------------------
 // Replaces placeholder with LED state value
@@ -18,12 +18,12 @@ String processor(const String &var)
 void initHTML()
 {
     // Route for root / web page
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(LittleFS, "/index.html", String(), false, processor); });
+//    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+//              { request->send(LittleFS, "/index.html", String(), false, processor); });
 
     // Route to load style.css file
-    server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(LittleFS, "/style.css", "text/css"); });
+//    server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request)
+//              { request->send(LittleFS, "/style.css", "text/css"); });
 
-    server.begin();
+//    server.begin();
 }

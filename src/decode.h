@@ -199,7 +199,7 @@ struct MyenergiHubPkt
   uint32_t Timestamp;       // Unix timestamp
   uint32_t _wtf1;           // Seems to always be 0x0000000e
   uint16_t FirmwareVersion; // Currently 0x5458
-  uint8_t _NetworkId;       // Always 83dec (0x53 | 's')
+  uint8_t _subDiv;       // Looks like a packet sub divider - Always 83dec (0x53 | 's') 
   uint8_t _wtf2;            // Always 0x00
   uint16_t UDP_PacketSize;  // Size of the packet
   uint16_t _wtf3;

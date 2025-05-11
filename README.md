@@ -7,6 +7,8 @@ This project is designed for an ESP32 CYD (Cheap Yellow Display) development boa
 
 The boards are available for about $16 from Amazon or AliExpress and use Wi-Fi to connect to your network.
 
+The code will run on a plain ESP32 without a display by commenting out the "#define TFT_DISPLAY" in the include.h file.
+
 The code is designed to act as a man-in-the-middle device between a Myenergi Hub and its server. Once installed it reads and
 decodes packets and will forward relevant information to MQTT allowing better integration with Home Assistant.
 
@@ -26,7 +28,7 @@ decodes packets and will forward relevant information to MQTT allowing better in
 1. Clone the repository to your local machine.
 2. Open the project in Visual Studio Code/PlatformIO
 3. Connect the ESP32 CYD board to your computer via USB.
-4. On first use you need to build a filesystem image (stuff in the data directory) and upload to the ESP32 (use the PlatformIO icon to see the menu options)
+4. This step is not currently required - "On first use you need to build a filesystem image (stuff in the data directory) and upload to the ESP32 (use the PlatformIO icon to see the menu options)"
 5. Then build and upload the code to the board using PlatformIO.
 6. After it is installed you can switch to using the Arduino OTA upload process by uncommenting/changing the options in the platformio.ini file
 7. The CYD boards can have slightly different displays which I think you can tell by a red or green tag on the screen cover. If the colors appear wrong on your display, try commenting out or deleting the "#define GREEN_TFT" in include.h

@@ -12,6 +12,9 @@
 #include <ESPmDNS.h>
 #include <PubSubClient.h>
 
+
+#define TFT_DISPLAY   // Comment out this line if you do not have a TFT display
+
 //#define debugInit
 #define debugLoop
 // #define debugDecodeHeader
@@ -20,8 +23,8 @@
 #define debugDecodeSub
 #define decodeSubUnknown
 //#define decodeSubPacket3510
-//#define decodeSubPacket3601
-//#define decodeSubPacket3730
+#define decodeSubPacket3601
+#define decodeSubPacket3730
 //#define decodeSubPacket5a5a
 //#define decodeSubPacket7878
 
